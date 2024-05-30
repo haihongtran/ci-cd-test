@@ -1,3 +1,4 @@
+import unittest
 from unittest import TestCase
 
 import numpy
@@ -8,6 +9,7 @@ class UnitTest(TestCase):
         # Pass
         self.assertEqual(numpy.array([1, 2, 3]).sum(), 6)
 
+    @unittest.SkipTest
     def test_fail(self):
         # Fail
         self.fail("Intended fail test.")
