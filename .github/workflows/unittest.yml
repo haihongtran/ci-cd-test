@@ -28,28 +28,32 @@ jobs:
       - name: Run unit tests
         id: run_tests
         run: |
-          python -m unittest discover -v > result.log
+          set +e
+          python -m unittest discover -v > result.log 2>&1
           exit_code=$?
-          echo "::set-output name=exit_code::$exit_code"
-          echo "::set-output name=log::$(cat result.log)"
+          echo "env_exit_code=$exit_code" >> $GITHUB_ENV
+          echo "env_log=$(cat result.log)" >> $GITHUB_ENV
+          exit "$exitcode"
 
       - name: Notify Slack
         if: always()
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_KEVIN_TEST }}
         run: |
-          if [ ${{ steps.run_tests.outputs.exit_code }} -ne 0 ]; then
+          if [[ $env_exit_code -ne 0 ]]; then
             STATUS="FAILED"
+            COLOR="danger"
           else
             STATUS="PASSED"
+            COLOR="good"
           fi
 
           PAYLOAD="{
             \"text\": \"CI Pipeline Test Result: $STATUS\",
             \"attachments\": [
               {
-                \"text\": \"${{ steps.run_tests.outputs.log }}\",
-                \"color\": \"${{ steps.run_tests.outputs.exit_code }}\" == "0" ? "good" : "danger"
+                \"text\": \"Test Log: $env_log\",
+                \"color\": \"$COLOR\"
               }
             ]
           }"
