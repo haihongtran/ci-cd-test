@@ -33,12 +33,10 @@ jobs:
           exit_code=$?
           echo "env_exit_code=$exit_code" >> $GITHUB_ENV
           awk '/==============/,/Ran /' result.txt > fail_error.txt
-          log=$(cat fail_error.txt)
-          log="${log//'%'/'%25'}"
-          log="${log//$'\n'/'%0A'}"
-          log="${log//$'\r'/'%0D'}"
-          echo "env_log=$log" >> $GITHUB_ENV
           exit "$exitcode"
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
 
       - name: Notify Slack
         if: always()
@@ -48,19 +46,22 @@ jobs:
           if [[ $env_exit_code -ne 0 ]]; then
             STATUS="FAILED"
             COLOR="danger"
+            LOG=$(cat fail_error.txt)
           else
             STATUS="PASSED"
             COLOR="good"
+            LOG="All tests passed"
           fi
 
-          PAYLOAD="{
-            \"text\": \"CI Pipeline Test Result: $STATUS\",
-            \"attachments\": [
+          PAYLOAD=$(jq -n --arg status "$STATUS" --arg result "$LOG" --arg color "$COLOR" \
+          '{
+            text: "CI Pipeline Test Result: \($status)",
+            attachments: [
               {
-                \"text\": $env_log,
-                \"color\": \"$COLOR\"
+                text: "\($result)",
+                color: $color
               }
             ]
-          }"
+          }')
 
           curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" $SLACK_WEBHOOK_URL
