@@ -33,7 +33,7 @@ jobs:
           exit_code=$?
           echo "env_exit_code=$exit_code" >> $GITHUB_ENV
           awk '/==============/,/Ran /' result.txt > fail_error.txt
-          exit "$exitcode"
+          exit "$env_exit_code"
 
       - name: Install jq
         run: sudo apt-get install -y jq
