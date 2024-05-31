@@ -13,3 +13,13 @@ class UnitTest(TestCase):
     def test_fail(self):
         # Fail
         self.fail("Intended fail test.")
+
+    @unittest.SkipTest
+    def test_error(self):
+        # Error
+        raise ValueError("Intended error test.")
+
+    @unittest.SkipTest
+    def test_error_divide_by_0(self):
+        # Error
+        self.assertEqual(4 / 0, 0)

@@ -27,4 +27,41 @@ jobs:
 
       - name: Run unit tests
         run: |
-          python -m unittest discover
+          set +e
+          python -m unittest discover -v > result.txt 2>&1
+          exit_code=$?
+          echo "env_exit_code=$exit_code" >> $GITHUB_ENV
+          awk '/==============/,/FAILED /' result.txt > fail_error.txt
+          exit $exit_code
+
+      - name: Install jq
+        if: always()
+        run: sudo apt-get install -y jq
+
+      - name: Notify Slack
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_KEVIN_TEST }}
+        run: |
+          if [[ $env_exit_code -ne 0 ]]; then
+            STATUS="FAILED"
+            COLOR="danger"
+            LOG=$(cat fail_error.txt)
+          else
+            STATUS="PASSED"
+            COLOR="good"
+            LOG="All tests passed"
+          fi
+
+          PAYLOAD=$(jq -n --arg status "$STATUS" --arg result "$LOG" --arg color "$COLOR" \
+          '{
+            text: "CI Pipeline Test Result: \($status)",
+            attachments: [
+              {
+                text: "\($result)",
+                color: $color
+              }
+            ]
+          }')
+
+          curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" $SLACK_WEBHOOK_URL
