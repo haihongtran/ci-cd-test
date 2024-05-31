@@ -26,5 +26,32 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run unit tests
+        id: run_tests
         run: |
-          python -m unittest discover
+          python -m unittest discover -v > result.log
+          exit_code=$?
+          echo "::set-output name=exit_code::$exit_code"
+          echo "::set-output name=log::$(cat result.log)"
+
+      - name: Notify Slack
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_KEVIN_TEST }}
+        run: |
+          if [ ${{ steps.run_tests.outputs.exit_code }} -ne 0 ]; then
+            STATUS="FAILED"
+          else
+            STATUS="PASSED"
+          fi
+
+          PAYLOAD="{
+            \"text\": \"CI Pipeline Test Result: $STATUS\",
+            \"attachments\": [
+              {
+                \"text\": \"${{ steps.run_tests.outputs.log }}\",
+                \"color\": \"${{ steps.run_tests.outputs.exit_code }}\" == "0" ? "good" : "danger"
+              }
+            ]
+          }"
+
+          curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" $SLACK_WEBHOOK_URL
