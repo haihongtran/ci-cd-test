@@ -29,10 +29,15 @@ jobs:
         id: run_tests
         run: |
           set +e
-          python -m unittest discover -v > result.log 2>&1
+          python -m unittest discover -v > result.txt 2>&1
           exit_code=$?
           echo "env_exit_code=$exit_code" >> $GITHUB_ENV
-          echo "env_log=$(cat result.log)" >> $GITHUB_ENV
+          awk '/==============/,/Ran /' result.txt > fail_error.txt
+          log=$(cat fail_error.txt)
+          log="${log//'%'/'%25'}"
+          log="${log//$'\n'/'%0A'}"
+          log="${log//$'\r'/'%0D'}"
+          echo "env_log=$log" >> $GITHUB_ENV
           exit "$exitcode"
 
       - name: Notify Slack
@@ -52,7 +57,7 @@ jobs:
             \"text\": \"CI Pipeline Test Result: $STATUS\",
             \"attachments\": [
               {
-                \"text\": \"Test Log: $env_log\",
+                \"text\": $env_log,
                 \"color\": \"$COLOR\"
               }
             ]

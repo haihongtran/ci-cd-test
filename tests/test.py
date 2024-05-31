@@ -13,3 +13,7 @@ class UnitTest(TestCase):
     def test_fail(self):
         # Fail
         self.fail("Intended fail test.")
+
+    def test_error(self):
+        # Error
+        raise ValueError("Intended error test.")
