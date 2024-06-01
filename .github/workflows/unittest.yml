@@ -34,6 +34,15 @@ jobs:
           awk '/==============/,/FAILED /' result.txt > fail_error.txt
           exit $exit_code
 
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_KEVIN_TEST }}
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,author,eventName,ref,workflow,job,took,pullRequest
+
       - name: Install jq
         if: always()
         run: sudo apt-get install -y jq
