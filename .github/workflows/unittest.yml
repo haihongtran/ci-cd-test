@@ -10,6 +10,9 @@ jobs:
   test:
     name: Run unit tests
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
 
     steps:
       - name: Check out the code
@@ -39,9 +42,11 @@ jobs:
         with:
           status: ${{ job.status }}
           job_name: ${{ github.job }}
+          author_name: ${{ github.job }}
           fields: repo,message,author,eventName,ref,workflow,job,took,pullRequest
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_KEVIN_TEST }}
+          MATRIX_CONTEXT: ${{ toJson(matrix) }}
         if: always()
 
       - name: Install jq
