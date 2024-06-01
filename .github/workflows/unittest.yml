@@ -34,9 +34,16 @@ jobs:
           awk '/==============/,/FAILED /' result.txt > fail_error.txt
           exit $exit_code
 
-      - name: Install jq
+      - name: Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          job_name: Run unit tests
+          author_name: Run unit tests
+          fields: repo,author,workflow,job,took,pullRequest
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_KEVIN_TEST }}
         if: always()
-        run: sudo apt-get install -y jq
 
       - name: Notify Slack
         if: always()
@@ -44,24 +51,18 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_KEVIN_TEST }}
         run: |
           if [[ $env_exit_code -ne 0 ]]; then
-            STATUS="FAILED"
+            sudo apt-get install -y jq
             COLOR="danger"
             LOG=$(cat fail_error.txt)
-          else
-            STATUS="PASSED"
-            COLOR="good"
-            LOG="All tests passed"
+            PAYLOAD=$(jq -n --arg result "$LOG" --arg color "$COLOR" \
+            '{
+              attachments: [
+                {
+                  text: "\($result)",
+                  color: $color
+                }
+              ]
+            }')
+
+            curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" $SLACK_WEBHOOK_URL
           fi
-
-          PAYLOAD=$(jq -n --arg status "$STATUS" --arg result "$LOG" --arg color "$COLOR" \
-          '{
-            text: "CI Pipeline Test Result: \($status)",
-            attachments: [
-              {
-                text: "\($result)",
-                color: $color
-              }
-            ]
-          }')
-
-          curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" $SLACK_WEBHOOK_URL
