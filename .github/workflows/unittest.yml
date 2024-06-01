@@ -34,11 +34,19 @@ jobs:
           awk '/==============/,/FAILED /' result.txt > fail_error.txt
           exit $exit_code
 
+      - name: Set main text
+        run: |
+          if [[ $env_exit_code -eq 0 ]]; then
+            echo env_text=":white_check_mark: Unit tests passed" >> $GITHUB_ENV
+          else
+            echo env_text=":no_entry: Unit tests failed" >> $GITHUB_ENV
+          fi
+
       - name: Slack notification
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          text: '${{ job.status }}' === 'success' ? ':white_check_mark: Run unit tests' : ':no_entry: Run unit tests'
+          text: $env_text
           job_name: Run unit tests
           author_name: Run unit tests
           fields: repo,author,workflow,job,took,pullRequest
