@@ -34,14 +34,15 @@ jobs:
           awk '/==============/,/FAILED /' result.txt > fail_error.txt
           exit $exit_code
 
-      - name: Notify Slack
+      - name: Slack notification
         uses: 8398a7/action-slack@v3
-        if: always()
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_KEVIN_TEST }}
         with:
           status: ${{ job.status }}
+          job_name: ${{ github.job }}
           fields: repo,message,author,eventName,ref,workflow,job,took,pullRequest
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_KEVIN_TEST }}
+        if: always()
 
       - name: Install jq
         if: always()
