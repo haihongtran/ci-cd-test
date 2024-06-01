@@ -43,7 +43,7 @@ jobs:
           status: ${{ job.status }}
           job_name: Run unit tests
           author_name: Run unit tests
-          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took,pullRequest
+          fields: repo,author,eventName,workflow,job,took,pullRequest
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_KEVIN_TEST }}
           MATRIX_CONTEXT: ${{ toJson(matrix) }}
