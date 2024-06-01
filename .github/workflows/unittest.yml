@@ -10,9 +10,6 @@ jobs:
   test:
     name: Run unit tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        os: [ ubuntu-latest ]
 
     steps:
       - name: Check out the code
@@ -46,12 +43,7 @@ jobs:
           fields: repo,author,workflow,job,took,pullRequest
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_KEVIN_TEST }}
-          MATRIX_CONTEXT: ${{ toJson(matrix) }}
         if: always()
-
-      - name: Install jq
-        if: always()
-        run: sudo apt-get install -y jq
 
       - name: Notify Slack
         if: always()
@@ -59,6 +51,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_KEVIN_TEST }}
         run: |
           if [[ $env_exit_code -ne 0 ]]; then
+            sudo apt-get install -y jq
             COLOR="danger"
             LOG=$(cat fail_error.txt)
             PAYLOAD=$(jq -n --arg result "$LOG" --arg color "$COLOR" \
