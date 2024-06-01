@@ -59,24 +59,17 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_KEVIN_TEST }}
         run: |
           if [[ $env_exit_code -ne 0 ]]; then
-            STATUS="FAILED"
             COLOR="danger"
             LOG=$(cat fail_error.txt)
-          else
-            STATUS="PASSED"
-            COLOR="good"
-            LOG="All tests passed"
+            PAYLOAD=$(jq -n --arg result "$LOG" --arg color "$COLOR" \
+            '{
+              attachments: [
+                {
+                  text: "\($result)",
+                  color: $color
+                }
+              ]
+            }')
+
+            curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" $SLACK_WEBHOOK_URL
           fi
-
-          PAYLOAD=$(jq -n --arg status "$STATUS" --arg result "$LOG" --arg color "$COLOR" \
-          '{
-            text: "CI Pipeline Test Result: \($status)",
-            attachments: [
-              {
-                text: "\($result)",
-                color: $color
-              }
-            ]
-          }')
-
-          curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" $SLACK_WEBHOOK_URL
