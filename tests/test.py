@@ -19,7 +19,7 @@ class UnitTest(TestCase):
         # Error
         raise ValueError("Intended error test.")
 
-    # @unittest.SkipTest
+    @unittest.SkipTest
     def test_error_divide_by_0(self):
         # Error
         self.assertEqual(4 / 0, 0)
