@@ -9,17 +9,17 @@ class UnitTest(TestCase):
         # Pass
         self.assertEqual(numpy.array([1, 2, 3]).sum(), 6)
 
-    @unittest.SkipTest
+    # @unittest.SkipTest
     def test_fail(self):
         # Fail
         self.fail("Intended fail test.")
 
-    @unittest.SkipTest
+    # @unittest.SkipTest
     def test_error(self):
         # Error
         raise ValueError("Intended error test.")
 
-    @unittest.SkipTest
+    # @unittest.SkipTest
     def test_error_divide_by_0(self):
         # Error
         self.assertEqual(4 / 0, 0)
