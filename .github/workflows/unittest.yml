@@ -43,6 +43,7 @@ jobs:
             text=":no_entry: Unit tests failed"
           fi
           echo "text=$text" >> "$GITHUB_OUTPUT"
+          echo "log=$(cat fail_error.txt)" >> "$GITHUB_OUTPUT"
         if: always()
 
       - name: Slack notification
@@ -58,7 +59,7 @@ jobs:
               attachments: [
                 {
                   color: '${{ job.status }}' === 'success' ? 'good' : 'danger',
-                  text: '$(cat fail_error.txt)',
+                  text: "${{ steps.set_text.outputs.log }}"
                 }
               ]
             }
