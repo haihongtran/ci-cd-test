@@ -60,7 +60,7 @@ jobs:
               attachments: [
                 {
                   color: '${{ job.status }}' === 'success' ? 'good' : 'danger',
-                  text: ${{ steps.set_text.outputs.log }}
+                  text: "\(${{ steps.set_text.outputs.log }})"
                 }
               ]
             }
