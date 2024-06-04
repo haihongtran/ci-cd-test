@@ -58,7 +58,7 @@ jobs:
               attachments: [
                 {
                   color: '${{ job.status }}' === 'success' ? 'good' : 'danger',
-                  text: \($(cat fail_error.txt)\),
+                  text: '$(cat fail_error.txt)',
                 }
               ]
             }
