@@ -43,38 +43,27 @@ jobs:
             text=":no_entry: Unit tests failed"
           fi
           echo "text=$text" >> "$GITHUB_OUTPUT"
+          sudo apt-get install -y jq
+          echo "log=$(cat fail_error.txt | jq -Rs .)" >> "$GITHUB_OUTPUT"
         if: always()
 
       - name: Slack notification
-        uses: 8398a7/action-slack@v3
+        uses: 8398a7/action-slack@v3.16.2
         with:
           status: ${{ job.status }}
           text: ${{ steps.set_text.outputs.text }}
           job_name: Run unit tests
           author_name: Run unit tests
           fields: repo,author,workflow,job,took,pullRequest
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_KEVIN_TEST }}
-        if: always()
-
-      - name: Notify Slack
-        if: always()
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_KEVIN_TEST }}
-        run: |
-          if [[ $env_exit_code -ne 0 ]]; then
-            sudo apt-get install -y jq
-            COLOR="danger"
-            LOG=$(cat fail_error.txt)
-            PAYLOAD=$(jq -n --arg result "$LOG" --arg color "$COLOR" \
-            '{
+          custom_payload: |
+            {
               attachments: [
                 {
-                  text: "\($result)",
-                  color: $color
+                  color: '${{ job.status }}' === 'success' ? 'good' : 'danger',
+                  text: "\(${{ steps.set_text.outputs.log }})"
                 }
               ]
-            }')
-
-            curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" $SLACK_WEBHOOK_URL
-          fi
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_KEVIN_TEST }}
+        if: always()
